@@ -1,4 +1,4 @@
-from utils.server_utils import count_servers
+from utils.plot_utils import count_servers
 from utils.plot_utils import plot_counts_bar
 
 

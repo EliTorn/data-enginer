@@ -36,8 +36,6 @@ TECHNOLOGY_TEMPLATES = {
     ]
 }
 
-
-
 TECHNOLOGIES_DESCRIPTIONS = {
     "database": (
         "Issues related to database systems and data persistence, including performance degradation, "

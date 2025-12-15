@@ -13,7 +13,6 @@ def init_technology_embeddings():
     Safe to run multiple times (idempotent).
     """
 
-    # make sure table exists
     create_technology_embeddings_table()
 
     if technology_embeddings_exist():
@@ -35,4 +34,4 @@ def init_technology_embeddings():
     for name, emb in zip(tech_names, tech_embeddings):
         save_technology_embedding(name, emb)
 
-    print("✅ Technology embeddings saved to database")
+    print("Technology embeddings saved to database")
