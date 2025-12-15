@@ -248,12 +248,3 @@ This project showcases:
 * Clean, modular architecture
 * Interview-ready design and explanations
 
----
-
-אם תרצה:
-
-* גרסה קצרה ל־GitHub
-* גרסה “איך להסביר את זה בראיון”
-* תרשים זרימה של כל המערכת
-
-פשוט תגיד 👌
