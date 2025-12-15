@@ -1,0 +1,15 @@
+# Core
+pandas
+numpy
+matplotlib
+
+# Jira
+jira
+
+# NLP / Embeddings
+sentence-transformers
+scikit-learn
+
+# Database
+sqlite-utils
+
