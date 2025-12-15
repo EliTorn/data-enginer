@@ -1,10 +1,12 @@
 import random
 from templates.technologies import TECHNOLOGY_TEMPLATES
+from utils.config_utils import SERVERS, DB_NAMES
+import asyncio
+import time
 
 
 def random_case(s):
-    if not s:
-        return s
+    if not s: return s
     return ''.join(c.upper() if random.random() > 0.5 else c.lower() for c in s)
 
 
@@ -21,14 +23,14 @@ def generate_description(template, servers, db_names):
     return template.format(server=s1, server2=s2, db_name=db_name)
 
 
-def create_send_box(jira, project_key: str, count_tickets: int):
-    servers = ["srv-prod-01", "SRV-db-02", "Srv-App-03", "srv-cache-04", None]
-    db_names = ["Postgres", "MySQL", "Oracle", "MongoDB", "SQLServer"]
+async def create_send_box(jira, project_key: str, count_tickets: int):
+    start_time = time.perf_counter()
     technologies = list(TECHNOLOGY_TEMPLATES.keys())
+    tasks = []
     for i in range(count_tickets):
         tech = random.choice(technologies)
         template = random.choice(TECHNOLOGY_TEMPLATES[tech])
-        description = generate_description(template, servers, db_names)
+        description = generate_description(template, servers=SERVERS, db_names=DB_NAMES)
 
         issue_dict = {
             "project": {"key": project_key},
@@ -37,5 +39,56 @@ def create_send_box(jira, project_key: str, count_tickets: int):
             "issuetype": {"name": "Task"}
         }
 
-        issue = jira.create_issue(fields=issue_dict)
-        print(f"Created Issue: {issue.key}")
+        task = asyncio.to_thread(
+            jira.create_issue,
+            fields=issue_dict
+        )
+        tasks.append(task)
+
+    await asyncio.gather(*tasks)
+    end_time = time.perf_counter()
+    duration = end_time - start_time
+
+    print(f"Created {count_tickets} tickets in {duration:.2f} seconds")
+
+
+async def delete_send_box_3(jira, project_key: str, count_tickets: int):
+    start_time = time.perf_counter()
+    issues = jira.search_issues(
+        f'project={project_key}',
+        maxResults=count_tickets
+    )
+    tasks = []
+    for issue in issues:
+        task = asyncio.to_thread(
+            jira.delete(),
+            issue.key
+        )
+        tasks.append(task)
+    await asyncio.gather(*tasks)
+    end_time = time.perf_counter()
+    duration = end_time - start_time
+    print(f"Deleted {len(issues)} tickets in {duration:.2f} seconds")
+
+
+async def delete_send_box(jira, project_key: str, count_tickets: int):
+    start_time = time.perf_counter()
+
+    issues = jira.search_issues(
+        f'project={project_key}',
+        maxResults=count_tickets
+    )
+
+    tasks = []
+    for issue in issues:
+        task = asyncio.to_thread(
+            issue.delete
+        )
+        tasks.append(task)
+
+    await asyncio.gather(*tasks)
+
+    end_time = time.perf_counter()
+    duration = end_time - start_time
+
+    print(f"Deleted {len(issues)} tickets in {duration:.2f} seconds")

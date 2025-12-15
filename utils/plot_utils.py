@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 
+
 def plot_counts_bar(counts, title="Server Occurrences"):
     counts.plot(kind="bar", figsize=(8, 4))
     plt.xlabel("Server")

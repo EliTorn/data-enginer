@@ -20,12 +20,19 @@ def get_num_tickets(jira, project_key: str, num_of_tickets: int) -> pd.DataFrame
 
 
 def load_jira_dataframe(num_of_tickets: int):
+    jira, project_key = get_jira_client()
+    return get_num_tickets(jira, project_key, num_of_tickets)
+
+
+def get_jira_client():
+    """
+    Create Jira client and return (jira, project_key)
+    """
     config = load_config()
 
     jira = JIRA(
         server=config["API_SERVER"],
         basic_auth=(config["EMAIL"], config["API_TOKEN"])
     )
-
     project_key = jira.projects()[0].key
-    return get_num_tickets(jira, project_key, num_of_tickets)
+    return jira, project_key
