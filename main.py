@@ -1,6 +1,5 @@
-from utils.jira_utils import get_jira_client, get_num_tickets
+from utils.jira_utils import get_jira_client, get_all_tickets_with_retry
 from utils.ticket_generator import create_tickets_bulk_async, delete_send_box
-
 
 from analysis.server_analysis import run_server_analysis
 from analysis.cosine_similarity import run_cosine_similarity
@@ -12,40 +11,58 @@ from db.repository import save_jira_issues, get_all_jira_issues, get_all_technol
 from embeddings.technology_embeddings import init_technology_embeddings
 from embeddings.ticket_embeddings import init_ticket_embeddings
 
+from my_logger.logger import get_logger
+
 import numpy as np
 import asyncio
+import time
+import pandas as pd
 
-COUNT_CREATE_TICKET = 20000
-COUNT_DELETE_TICKET = 10
+COUNT_TICKET = 5000  # max ticket in free plan Jira
 NUM_OF_TICKETS = 10000
+PAGE_SIZE = 10
+MAX_RETRY = 3
+SLEEP_SEC = 2
+
+logger = get_logger(__name__)
 
 
 async def main():
-    print('Start Data Engineer Code !')
+    logger.info('Start Data Engineer Code !')
     # Add evinvoument
     jira, project_key = get_jira_client()
 
-    # create send box
+    # create/delete  send box
     # await create_tickets_bulk_async(jira,project_key,COUNT_CREATE_TICKET)
-    # # await delete_send_box(jira=jira, project_key=project_key, count_tickets=COUNT_DELETE_TICKET)
+    # delete_send_box()
+
     #
-    # # get All Data
-    # df = await get_num_tickets(jira=jira,
-    #                            project_key=project_key,
-    #                            num_of_tickets=NUM_OF_TICKETS)
-    # print(len(df))
-    # print(df.count())
-    # server_counts = count_servers(df)
-    # print(server_counts)
-    # print(df.head(5))
+    # get All Data
+    df, error, next_token = await get_all_tickets_with_retry(
+        jira=jira,
+        project_key=project_key,
+        batch_size=NUM_OF_TICKETS,
+        page_size=PAGE_SIZE,
+        max_retry=MAX_RETRY,
+        sleep_sec=SLEEP_SEC
+    )
+    if error:
+        print("Finished with error:", error)
+    df.head(10).to_csv(
+        "jira_issues_sample.csv",
+        index=False,
+        encoding="utf-8"
+    )
 
     # connect Db , craete and Save in Db
-    # create_jira_issues_table()
-    # create_ticket_technology_match_table
-    # save_jira_issues(df)
-    df = get_all_jira_issues()
+    create_jira_issues_table()
+    create_ticket_technology_match_table()
 
-    df = run_server_analysis(df)
+    save_jira_issues(df)
+    df_jira_tickets = get_all_jira_issues()
+    print(df_jira_tickets.head(5))
+    #
+    # df = run_server_analysis(df)
 
     # create embddings
     # init_technology_embeddings()
@@ -61,8 +78,6 @@ async def main():
     #     index=False,
     #     encoding="utf-8"
     # )
-
-    # create_ticket_technology_match_table()
 
     # Mush Conine Similarity
     # df_match = run_cosine_similarity()

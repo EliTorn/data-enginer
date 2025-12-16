@@ -1,24 +1,8 @@
 from jira import JIRA
-from utils.config_utils import load_config
+from utils.config_utils import load_config, get_url
 import pandas as pd
 import asyncio
 
-
-# def get_num_tickets_v2(jira, project_key: str, num_of_tickets: int) -> pd.DataFrame:
-#     issues = jira.search_issues(f'project={project_key}', maxResults=num_of_tickets)
-#
-#     data = []
-#     for issue in issues:
-#         data.append({
-#             "id": issue.id,
-#             "key": issue.key,
-#             "summary": issue.fields.summary,
-#             "description": issue.fields.description,
-#             "status": issue.fields.status.name
-#         })
-#
-#     return pd.DataFrame(data)
-#
 
 def get_jira_client():
     """
@@ -34,39 +18,93 @@ def get_jira_client():
     return jira, project_key
 
 
-# todo do here login and retry !!!
-async def get_num_tickets(
+def map_issue(issue: dict) -> dict:
+    fields = issue.get("fields", {})
+    return {
+        "id": issue.get("id"),
+        "key": issue.get("key"),
+        "summary": fields.get("summary"),
+        "description": fields.get("description"),
+        "status": (fields.get("status") or {}).get("name"),
+    }
+
+
+async def fetch_jira_pages(
         jira,
+        url: str,
         project_key: str,
         num_of_tickets: int,
-        page_size: int = 100
-) -> pd.DataFrame:
-    base = jira._options["server"].rstrip("/")
-    url = f"{base}/rest/api/3/search/jql"
-    next_token = None
+        page_size: int,
+        token: str | None = None
+) -> tuple[list[dict], str | None]:
     rows = []
     while len(rows) < num_of_tickets:
         params = {
             "jql": f'project={project_key} ORDER BY created DESC',
             "maxResults": min(page_size, num_of_tickets - len(rows)),
             "fields": "summary,description,status",
+            **({"nextPageToken": token} if token else {})
         }
-        if next_token:
-            params["nextPageToken"] = next_token
         resp = await asyncio.to_thread(jira._session.get, url, params=params)
         resp.raise_for_status()
         payload = resp.json()
         issues = payload.get("issues", [])
-        for issue in issues:
-            fields = issue.get("fields", {})
-            rows.append({
-                "id": issue.get("id"),
-                "key": issue.get("key"),
-                "summary": fields.get("summary"),
-                "description": fields.get("description"),
-                "status": (fields.get("status") or {}).get("name"),
-            })
-        next_token = payload.get("nextPageToken")
-        if not next_token or not issues:
-            break
-    return pd.DataFrame(rows)
+        if not issues: break
+        rows.extend(map_issue(i) for i in issues)
+        token = payload.get("nextPageToken")
+        if not token: break
+    return rows, token
+
+
+async def get_num_tickets(
+        jira,
+        project_key: str,
+        num_of_tickets: int,
+        page_size: int = 10,
+        start_token: str | None = None
+) -> tuple[pd.DataFrame, str | None, str | None]:
+    url = get_url(jira=jira)
+    try:
+        rows, next_token = await fetch_jira_pages(
+            jira=jira,
+            url=url,
+            project_key=project_key,
+            num_of_tickets=num_of_tickets,
+            page_size=page_size,
+            token=start_token
+        )
+        return pd.DataFrame(rows), None, next_token
+    except Exception as e:
+        return pd.DataFrame(), str(e), start_token
+
+
+async def get_all_tickets_with_retry(
+        jira,
+        project_key: str,
+        batch_size: int,
+        page_size: int,
+        max_retry: int = 3,
+        sleep_sec: int = 2
+):
+    all_rows = []
+    new_token = None
+    error = None
+    for i in range(max_retry + 1):
+        df, error, new_token = await get_num_tickets(
+            jira,
+            project_key=project_key,
+            num_of_tickets=batch_size,
+            page_size=page_size,
+            start_token=new_token
+        )
+        if not error:
+            if all_rows:
+                all_rows.append(df)
+                final_df = pd.concat(all_rows, ignore_index=True)
+                return final_df, None, new_token
+            return df, None, new_token
+        print(f"Error (retry {i + 1}/{max_retry}): {error}")
+        await asyncio.sleep(sleep_sec)
+        all_rows.append(df)
+    final_df = pd.concat(all_rows, ignore_index=True) if all_rows else pd.DataFrame()
+    return final_df, error, new_token

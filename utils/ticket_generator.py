@@ -16,11 +16,19 @@ def generate_description(template, servers, db_names):
     server = random.choice(servers)
     if server is not None:
         server = random_case(server)
+
+    server2 = random.choice(servers)
+    if server2 is not None:
+        server2 = random_case(server2)
+
     db_name = random.choice(db_names) if "{db_name}" in template else ""
+
     return template.format(
         server=server,
+        server2=server2,
         db_name=db_name
     )
+
 
 
 async def create_send_box(jira, project_key: str, count_tickets: int):

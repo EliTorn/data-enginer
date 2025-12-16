@@ -8,3 +8,8 @@ def load_config():
 
 SERVERS = ["srv-prod-01", "SRV-db-02", "Srv-App-03", "srv-cache-04", None]
 DB_NAMES = ["Postgres", "MySQL", "Oracle", "MongoDB", "SQLServer"]
+
+
+def get_url(jira) -> str:
+    base = jira._options["server"].rstrip("/")
+    return f"{base}/rest/api/3/search/jql"
