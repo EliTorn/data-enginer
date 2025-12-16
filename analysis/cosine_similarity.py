@@ -7,6 +7,10 @@ from db.repository import (
     get_all_technology_embeddings
 )
 
+from my_logger.logger import get_logger
+
+logger = get_logger(__name__)
+
 KEYWORDS = {
     "authentication": ["login", "auth", "credential", "password"],
     "networking": ["vpn", "dns", "firewall", "packet"],
@@ -20,23 +24,23 @@ def load_embeddings():
     df_tickets = get_all_jira_issues()
     df_tech = get_all_technology_embeddings()
 
-    print("Tickets:")
-    print(df_tickets.head())
+    logger.info("Tickets:")
+    logger.info(df_tickets.head())
 
-    print("\nTechnologies:")
-    print(df_tech.head())
+    logger.info("\nTechnologies:")
+    logger.info(df_tech.head())
 
     df_tickets = df_tickets[df_tickets["embedding"].notna()]
     df_tech = df_tech[df_tech["embedding"].notna()]
 
-    print("Tickets with embedding:", len(df_tickets))
-    print("Technologies with embedding:", len(df_tech))
+    logger.info("Tickets with embeddings: %d", len(df_tickets))
+    logger.info("Technologies with embeddings: %d", len(df_tech))
 
     df_tickets["embedding_vec"] = df_tickets["embedding"].apply(blob_to_vec)
     df_tech["embedding_vec"] = df_tech["embedding"].apply(blob_to_vec)
 
-    print(len(df_tickets["embedding_vec"].iloc[0]))
-    print(len(df_tech["embedding_vec"].iloc[0]))
+    logger.info(len(df_tickets["embedding_vec"].iloc[0]))
+    logger.info(len(df_tech["embedding_vec"].iloc[0]))
 
     return df_tickets, df_tech
 
@@ -81,7 +85,7 @@ def run_cosine_similarity():
     df_tickets, df_tech = load_embeddings()
     df_match = compute_best_technology_match(df_tickets, df_tech)
 
-    print(df_match.head())
+    logger.info(df_match.head())
     return df_match
 
 

@@ -19,6 +19,7 @@ def technology_embeddings_exist() -> bool:
 
 
 def save_technology_embedding(name, embedding):
+    drop_jira_issues_table(name_table="technology_embeddings")
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -45,6 +46,7 @@ def extract_text_simple(desc: str) -> str:
 
 
 def save_jira_issues(df):
+    drop_jira_issues_table(name_table="jira_issues")
     conn = get_connection()
     cursor = conn.cursor()
     rows = [
@@ -127,6 +129,7 @@ def get_jira_issues_without_embedding(limit: int = 50) -> pd.DataFrame:
 
 
 def save_ticket_technology_matches(df_match: pd.DataFrame):
+    drop_jira_issues_table(name_table="ticket_technology_match")
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -163,3 +166,13 @@ def get_all_ticket_technology_matches() -> pd.DataFrame:
     )
     conn.close()
     return df
+
+
+def drop_jira_issues_table(name_table):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(f"DELETE FROM {name_table}")
+
+    conn.commit()
+    conn.close()

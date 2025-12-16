@@ -1,6 +1,6 @@
 import sqlite3
 
-DB_PATH = "embeddings.db"
+DB_PATH = "jira_analytics.db"
 
 
 def get_connection():

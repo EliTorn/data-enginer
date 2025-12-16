@@ -5,6 +5,9 @@ from db.repository import (
     save_technology_embedding,
     technology_embeddings_exist
 )
+from my_logger.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def init_technology_embeddings():
@@ -16,10 +19,10 @@ def init_technology_embeddings():
     create_technology_embeddings_table()
 
     if technology_embeddings_exist():
-        print("Technology embeddings already exist. Skipping creation.")
+        logger.info("Technology embeddings already exist. Skipping creation.")
         return
 
-    print("Creating technology embeddings...")
+    logger.info("Creating technology embeddings...")
 
     model = SentenceTransformer("all-MiniLM-L6-v2")
 
@@ -34,4 +37,4 @@ def init_technology_embeddings():
     for name, emb in zip(tech_names, tech_embeddings):
         save_technology_embedding(name, emb)
 
-    print("Technology embeddings saved to database")
+    logger.info("Technology embeddings saved to database")

@@ -8,7 +8,8 @@ BULK_LIMIT = 50
 
 
 def random_case(s):
-    if not s: return s
+    if not s:
+        return s
     return ''.join(c.upper() if random.random() > 0.5 else c.lower() for c in s)
 
 
@@ -30,7 +31,6 @@ def generate_description(template, servers, db_names):
     )
 
 
-
 async def create_send_box(jira, project_key: str, count_tickets: int):
     start_time = time.perf_counter()
     technologies = list(TECHNOLOGY_TEMPLATES.keys())
@@ -39,14 +39,12 @@ async def create_send_box(jira, project_key: str, count_tickets: int):
         tech = random.choice(technologies)
         template = random.choice(TECHNOLOGY_TEMPLATES[tech])
         description = generate_description(template, servers=SERVERS, db_names=DB_NAMES)
-
         issue_dict = {
             "project": {"key": project_key},
             "summary": f"Ticket {i + 1}",
             "description": description,
             "issuetype": {"name": "Task"}
         }
-
         task = asyncio.to_thread(
             jira.create_issue,
             fields=issue_dict
@@ -58,35 +56,6 @@ async def create_send_box(jira, project_key: str, count_tickets: int):
     duration = end_time - start_time
 
     print(f"Created {count_tickets} tickets in {duration:.2f} seconds")
-
-
-async def create_tickets_in_batches(
-        jira,
-        project_key: str,
-        total_tickets: int,
-        batch_size: int = 100,
-        sleep_seconds: int = 1
-):
-    created = 0
-    while created < total_tickets:
-        remaining = total_tickets - created
-        current_batch = min(batch_size, remaining)
-
-        print(f"Creating batch of {current_batch} tickets "
-              f"(progress: {created}/{total_tickets})")
-
-        await create_send_box(
-            jira=jira,
-            project_key=project_key,
-            count_tickets=current_batch
-        )
-
-        created += current_batch
-
-        if created < total_tickets:
-            await asyncio.sleep(sleep_seconds)
-
-    print(f"Finished creating {total_tickets} tickets")
 
 
 async def delete_send_box(jira, project_key: str, count_tickets: int):
@@ -201,18 +170,13 @@ async def create_tickets_bulk_async(
             f"Batch {batch_num}: creating {len(batch)} issues "
             f"(progress {i}/{total_tickets})"
         )
-
-        # 🔑 run blocking HTTP call in thread
         response = await asyncio.to_thread(
             send_bulk_batch,
             jira,
             bulk_url,
             batch
         )
-
         if not handle_bulk_response(response):
             continue
-
         await asyncio.sleep(sleep_seconds)
-
     print(f"Finished creating {total_tickets} tickets")
