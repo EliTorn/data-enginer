@@ -3,7 +3,10 @@ import json
 import json
 import os
 
+
+
 REQUIRED_KEYS = {"API_SERVER", "EMAIL", "API_TOKEN"}
+
 
 
 def load_config(path: str = "config.json") -> dict:

@@ -18,6 +18,31 @@ def get_jira_client():
     return jira, project_key
 
 
+def init_jira_or_fail():
+    """
+    Initializes Jira client using config.json.
+
+    Returns:
+        (jira, project_key)
+
+    Raises:
+        RuntimeError: if config.json is missing or invalid.
+    """
+    try:
+        return get_jira_client()
+
+    except Exception:
+        raise RuntimeError(
+            "config.json is invalid or missing required fields.\n\n"
+            "The file must look exactly like this:\n"
+            "{\n"
+            '  "API_TOKEN": "YOUR_JIRA_API_TOKEN",\n'
+            '  "EMAIL": "your_email@gmail.com",\n'
+            '  "API_SERVER": "https://your-domain.atlassian.net"\n'
+            "}\n"
+        )
+
+
 def map_issue(issue: dict) -> dict:
     fields = issue.get("fields", {})
     return {

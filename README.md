@@ -68,7 +68,7 @@ python main.py
 
 ---
 
-## ✅ Summary (one sentence)
+## ✅ Summary:
 
 This file orchestrates a full Jira data pipeline: **fetch → store → analyze → classify**, using async code, embeddings, and clean modular design.
 
