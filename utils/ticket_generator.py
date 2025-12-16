@@ -1,6 +1,6 @@
 import random
 from templates.technologies import TECHNOLOGY_TEMPLATES
-from utils.config_utils import SERVERS, DB_NAMES
+from utils.config_utils import SERVERS, DB_NAMES, get_url
 import asyncio
 import time
 
@@ -142,7 +142,7 @@ def send_bulk_batch(
 def handle_bulk_response(response):
     if response.status_code == 429:
         retry = int(response.headers.get("Retry-After", 60))
-        print(f"⏳ Rate limited. Sleeping {retry}s")
+        print(f"ate limited. Sleeping {retry}s")
         time.sleep(retry)
         return False
 
@@ -156,8 +156,8 @@ async def create_tickets_bulk_async(
         total_tickets: int,
         sleep_seconds: float = 1.0
 ):
-    base_url = "https://play-ground-v1.atlassian.net"
-    bulk_url = f"{base_url}/rest/api/3/issue/bulk"
+    base_url = get_url(jira=jira)
+
 
     issues = build_issues(project_key, total_tickets)
 

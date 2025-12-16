@@ -3,7 +3,8 @@ from templates.technologies import TECHNOLOGIES_DESCRIPTIONS
 from db.schema import create_technology_embeddings_table
 from db.repository import (
     save_technology_embedding,
-    technology_embeddings_exist
+    technology_embeddings_exist,
+    drop_jira_issues_table
 )
 from my_logger.logger import get_logger
 
@@ -33,7 +34,7 @@ def init_technology_embeddings():
         tech_texts,
         normalize_embeddings=True
     )
-
+    drop_jira_issues_table(name_table="technology_embeddings")
     for name, emb in zip(tech_names, tech_embeddings):
         save_technology_embedding(name, emb)
 

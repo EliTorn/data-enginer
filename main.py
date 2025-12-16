@@ -6,7 +6,7 @@ from analysis.cosine_similarity import run_cosine_similarity
 
 from db.schema import create_jira_issues_table, create_ticket_technology_match_table
 from db.repository import save_jira_issues, get_all_jira_issues, save_ticket_technology_matches, \
-    get_all_ticket_technology_matches
+    get_all_ticket_technology_matches, drop_jira_issues_table
 
 from embeddings.technology_embeddings import init_technology_embeddings
 from embeddings.ticket_embeddings import init_ticket_embeddings
@@ -50,6 +50,7 @@ async def run_embeddings_and_technology_analysis():
     df_match = run_cosine_similarity()
 
     logger.info("Saving similarity matches to database")
+    drop_jira_issues_table("technology_embeddings")
     save_ticket_technology_matches(df_match)
 
     ticket_technology_matches_df = get_all_ticket_technology_matches()

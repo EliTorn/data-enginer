@@ -19,7 +19,6 @@ def technology_embeddings_exist() -> bool:
 
 
 def save_technology_embedding(name, embedding):
-    drop_jira_issues_table(name_table="technology_embeddings")
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -129,7 +128,6 @@ def get_jira_issues_without_embedding(limit: int = 50) -> pd.DataFrame:
 
 
 def save_ticket_technology_matches(df_match: pd.DataFrame):
-    drop_jira_issues_table(name_table="ticket_technology_match")
     conn = get_connection()
     cursor = conn.cursor()
 
