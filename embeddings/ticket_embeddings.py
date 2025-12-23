@@ -1,4 +1,3 @@
-from sentence_transformers import SentenceTransformer
 from db.repository import save_ticket_embedding, get_jira_issues_without_embedding
 from sentence_transformers import SentenceTransformer
 

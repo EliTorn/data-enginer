@@ -1,5 +1,5 @@
-jira==3.10.5
-matplotlib==3.10.8
-numpy==2.3.5
-pandas==2.3.3
-sentence-transformers==5.2.0
+jira
+matplotlib
+numpy
+pandas
+sentence-transformers

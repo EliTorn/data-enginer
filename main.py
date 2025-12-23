@@ -1,5 +1,4 @@
 from utils.jira_utils import init_jira_or_fail, get_all_tickets_with_retry
-from utils.ticket_generator import create_tickets_bulk_async, delete_send_box
 
 from analysis.server_analysis import run_server_analysis, run_technology_analysis
 from analysis.cosine_similarity import run_cosine_similarity
@@ -22,15 +21,6 @@ SLEEP_SEC = 2
 SIMILARITY_THRESHOLD = 0.1
 logger = get_logger(__name__)
 
-
-async def create_or_delete_send_box(jira, project_key):
-    # create/delete send box
-    logger.info("Creating Jira tickets in bulk")
-    await create_tickets_bulk_async(jira, project_key, COUNT_TICKET)
-    logger.info("Finished creating Jira tickets")
-    logger.info("Deleting Jira tickets")
-    await delete_send_box(jira, project_key, COUNT_TICKET)
-    logger.info("Finished deleting Jira tickets")
 
 
 async def run_embeddings_and_technology_analysis():
@@ -140,8 +130,6 @@ async def main():
 
     logger.info("Initializing Jira client")
     jira, project_key = init_jira_or_fail()
-
-    # await create_or_delete_send_box(jira, project_key)
 
     df_all_tickets = await fetch_jira_tickets(jira, project_key)
 
